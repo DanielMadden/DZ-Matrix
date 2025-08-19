@@ -106,8 +106,14 @@
       const SVG_PROBABILITY = 0.01;
       const HEAD_MIN_ALPHA = 0.95; // make heads punchy (optional)
 
-      // Helper
-      const randDigitCode = () => 48 + ((Math.random() * 10) | 0); // '0'..'9'
+      // choose what you want to allow
+      const POOL =
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@#$%^&*()_+-=[]{}|;:',.<>/?~`";
+
+      const WEIGHTED_POOL = POOL + "000111ZZZzzz";
+
+      const randCharCode = () =>
+        WEIGHTED_POOL.charCodeAt((Math.random() * WEIGHTED_POOL.length) | 0);
 
       // (Optional) tiny shimmer in mid-tail:
       // const FLICKER_CHANCE = 0.003;
@@ -153,8 +159,8 @@
               intensity[k] = 1;
             } else {
               cellType[k] = TYPES.TEXT;
-              intensity[k] = 0.3;
-              glyphCode[k] = randDigitCode();
+              intensity[k] = 0.5;
+              glyphCode[k] = randCharCode();
             }
           }
           // move stream down
@@ -194,7 +200,7 @@
             if (a < THRESH) continue;
 
             const cx = c * CELL + CELL / 2;
-            const alpha = headNow[k] ? 0.6 : a; // Math.max(a, HEAD_MIN_ALPHA); // keep heads bright-ish
+            const alpha = headNow[k] ? 0.9 : a; // Math.max(a, HEAD_MIN_ALPHA); // keep heads bright-ish
 
             if (cellType[k] === TYPES.SVG && svgImg) {
               const w = CELL,
