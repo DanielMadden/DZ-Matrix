@@ -1,5 +1,9 @@
 <html>
   <head>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap"
+      rel="stylesheet"
+    />
     <style>
       html,
       body,
@@ -7,7 +11,7 @@
         height: 1000px;
         width: 1000px;
         margin: 0;
-        background: #111;
+        background: rgb(11, 11, 11);
       }
       #stage {
         position: relative;
@@ -31,9 +35,8 @@
         /* radial gradient center -> edges, tweak colors/alpha */
         background: radial-gradient(
           circle at 50% 50%,
-          rgba(30, 120, 255, 0.9) 0%,
-          rgba(10, 40, 120, 0.7) 40%,
-          rgba(5, 10, 40, 0.4) 75%,
+          rgba(0, 183, 255, 0.9) 0%,
+          rgba(0, 0, 0, 0) 50%,
           rgba(0, 0, 0, 0) 100%
         );
         opacity: 1; /* overall strength */
@@ -77,11 +80,12 @@
       let ypos = Array(cols).fill(0);
 
       // --- Colors & font ---
-      const DIGIT_COLOR = "rgba(240,240,240,0.3)"; // soft grayish white
+      const DIGIT_COLOR = "rgba(240,240,240,0.5)"; // soft grayish white
       const SVG_COLOR = "rgba(255,255,255,1)"; // bright white
-      const FADE_RECT = "rgba(0,0,0,0.1)"; // tail fade strength
-      ctx.font =
-        "15pt ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+      const FADE_COLOR = "11,11,11";
+      const FADE_ALPHA = "0.1";
+      const FADE_RGBA = `rgba(${FADE_COLOR},${FADE_ALPHA})`;
+      ctx.font = "300 15pt 'Poppins', sans-serif";
 
       // --- SVG setup (inline → data URL → Image) ---
       const rawSvg = `
@@ -117,14 +121,19 @@
       svgToImage(rawSvg).then((img) => (svgImg = img));
 
       // --- Matrix loop ---
-      const SVG_PROBABILITY = 0.06; // ~6% of glyphs are the SVG; tweak to taste
+      const SVG_PROBABILITY = 0.01;
       const SPEED = 50; // ms/frame
+
+      ctx.fillStyle = `rgb(${FADE_COLOR})`;
+
+      ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
       function tick() {
         // fade trails
-        ctx.fillStyle = FADE_RECT;
+        ctx.fillStyle = FADE_RGBA;
         ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
+        ctx.textAlign = "center";
         ctx.textBaseline = "top";
 
         ypos.forEach((y, col) => {
@@ -153,10 +162,10 @@
             ctx.drawImage(svgImg, x, y, drawW, drawH);
             ctx.restore();
           } else {
-            // draw digit 0-9
-            const digit = Math.floor(Math.random() * 10).toString();
+            // draw text
+            const text = String.fromCharCode(Math.random() * 128);
             ctx.fillStyle = DIGIT_COLOR;
-            ctx.fillText(digit, x, y);
+            ctx.fillText(text, x + CELL / 2, y);
           }
 
           // move stream down
