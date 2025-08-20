@@ -137,16 +137,14 @@
       ctx.fillStyle = `rgb(${FADE_COLOR})`;
       ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-      const DPR = Math.max(1, window.devicePixelRatio || 1);
+      const DPR = Math.min(window.devicePixelRatio, 2);
 
       function rebuildGrid() {
         // size the drawing buffer to the current CSS size * DPR
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
-        console.log(w, h);
         canvas.width = Math.round(w * DPR);
         canvas.height = Math.round(h * DPR);
-        console.log(canvas.width, canvas.height);
         ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // reset scale
 
         // recompute grid dims (in CSS pixels)
@@ -163,7 +161,7 @@
 
         // repaint background once
         ctx.fillStyle = `rgb(${FADE_COLOR})`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
       }
 
       function tick() {
@@ -185,7 +183,7 @@
             }
           }
           // move stream down
-          if (y > canvas.height / 2 && Math.random() > 0.975) ypos[c] = 0;
+          if (y >= canvas.clientHeight && Math.random() > 0.975) ypos[c] = 0;
           else ypos[c] = y + CELL;
         }
 
