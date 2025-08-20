@@ -23,6 +23,8 @@
         position: absolute;
         inset: 0;
         z-index: 0;
+        width: 100vw;
+        height: 100vh;
       }
 
       /* Middle: gradient wash using 'color' blend */
@@ -52,11 +54,9 @@
     </style>
   </head>
   <body>
-    <div id="stage">
-      <canvas id="matrix" width="1000" height="1000"></canvas>
-      <div class="color-wash"></div>
-      <div id="globeWrap"></div>
-    </div>
+    <canvas id="matrix"></canvas>
+    <div class="color-wash"></div>
+    <div id="globeWrap"></div>
 
     <script type="module">
       // --- SVG setup (inline → data URL → Image) ---
@@ -79,20 +79,16 @@
 
       // Grid
       const CELL = 20;
-      const COLS = Math.floor(canvas.width / CELL);
-      const ROWS = Math.floor(canvas.height / CELL);
-      const N = COLS * ROWS;
+
+      let COLS = 0,
+        ROWS = 0,
+        N = 0;
 
       // --- Per‑cell state ---
-      const intensity = new Float32Array(N); // 0..1
-      const glyphCode = new Uint16Array(N); // charCode for the stored glyph
-      const cellType = new Uint8Array(N); // 0=empty,1=text,2=svg
+      let intensity, glyphCode, cellType, headNow, ypos;
       const TYPES = { EMPTY: 0, TEXT: 1, SVG: 2 };
 
       const idx = (c, r) => r * COLS + c;
-
-      // Streams (one head per column)
-      const ypos = Array(COLS).fill(0);
 
       // Tuning
       const DECAY = 0.9; // 0.88..0.97
@@ -141,7 +137,34 @@
       ctx.fillStyle = `rgb(${FADE_COLOR})`;
       ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-      const headNow = new Uint8Array(N); // transient per-frame
+      const DPR = Math.max(1, window.devicePixelRatio || 1);
+
+      function rebuildGrid() {
+        // size the drawing buffer to the current CSS size * DPR
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        console.log(w, h);
+        canvas.width = Math.round(w * DPR);
+        canvas.height = Math.round(h * DPR);
+        console.log(canvas.width, canvas.height);
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // reset scale
+
+        // recompute grid dims (in CSS pixels)
+        COLS = Math.ceil(w / CELL);
+        ROWS = Math.ceil(h / CELL);
+        N = COLS * ROWS;
+
+        // re‑init state
+        intensity = new Float32Array(N);
+        glyphCode = new Uint16Array(N);
+        cellType = new Uint8Array(N);
+        headNow = new Uint8Array(N);
+        ypos = new Array(COLS).fill(0);
+
+        // repaint background once
+        ctx.fillStyle = `rgb(${FADE_COLOR})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       function tick() {
         headNow.fill(0);
@@ -162,7 +185,7 @@
             }
           }
           // move stream down
-          if (y > canvas.height && Math.random() > 0.975) ypos[c] = 0;
+          if (y > canvas.height / 2 && Math.random() > 0.975) ypos[c] = 0;
           else ypos[c] = y + CELL;
         }
 
@@ -206,7 +229,7 @@
             const alpha = headNow[k] ? 0.9 : a;
 
             if (cellType[k] === TYPES.SVG && svgImg) {
-              const w = CELL,
+              const w = CELL / 1.5,
                 h = (svgImg.height / svgImg.width) * w;
               ctx.globalAlpha = alpha >= 1 ? 1 : alpha;
               ctx.drawImage(svgImg, cx - w / 2, y, w, h);
@@ -220,6 +243,14 @@
 
         ctx.globalAlpha = 1;
       }
+
+      let resizeRaf;
+      window.addEventListener("resize", () => {
+        cancelAnimationFrame(resizeRaf);
+        resizeRaf = requestAnimationFrame(rebuildGrid);
+      });
+
+      rebuildGrid(); // initial
 
       const loop = setInterval(tick, SPEED);
     </script>
