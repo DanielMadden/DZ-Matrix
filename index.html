@@ -166,7 +166,7 @@
             headNow[k] = 1;
             if (svgImg && Math.random() < SVG_PROBABILITY) {
               cellType[k] = TYPES.SVG;
-              intensity[k] = 1;
+              intensity[k] = 5;
             } else {
               cellType[k] = TYPES.TEXT;
               intensity[k] = 0.5;
@@ -215,7 +215,7 @@
             if (cellType[k] === TYPES.SVG && svgImg) {
               const w = CELL,
                 h = (svgImg.height / svgImg.width) * w;
-              ctx.globalAlpha = alpha;
+              ctx.globalAlpha = alpha >= 1 ? 1 : alpha;
               ctx.drawImage(svgImg, cx - w / 2, y, w, h);
             } else if (cellType[k] === TYPES.TEXT) {
               ctx.globalAlpha = alpha;
